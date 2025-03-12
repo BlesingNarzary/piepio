@@ -8,6 +8,8 @@ import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import ProfilePage from "@/pages/profile-page";
 import { ProtectedRoute } from "./lib/protected-route";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function Router() {
   return (
@@ -23,10 +25,15 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router />
-        <Toaster />
-      </AuthProvider>
+      <ThemeProvider defaultTheme="light">
+        <AuthProvider>
+          <div className="fixed top-4 right-4 z-50">
+            <ThemeToggle />
+          </div>
+          <Router />
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
