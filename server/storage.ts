@@ -12,6 +12,12 @@ import session from "express-session";
 
 const MemoryStore = createMemoryStore(session);
 
+interface ProfileUpdateData {
+  displayName?: string;
+  bio?: string;
+  avatarUrl?: string;
+}
+
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private posts: Map<number, Post>;
@@ -73,7 +79,7 @@ export class MemStorage implements IStorage {
     const following = Array.from(this.follows.values())
       .filter((follow) => follow.followerId === userId)
       .map((follow) => follow.followingId);
-    
+
     return Array.from(this.posts.values())
       .filter((post) => following.includes(post.userId) || post.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -138,6 +144,26 @@ export class MemStorage implements IStorage {
     return Array.from(this.posts.values())
       .filter((post) => post.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async updateUserProfile(userId: number, data: ProfileUpdateData): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const updatedUser = { ...user, ...data };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
+  async isFollowing(followerId: number, followingId: number): Promise<boolean> {
+    return Array.from(this.follows.values()).some(
+      (f) => f.followerId === followerId && f.followingId === followingId
+    );
   }
 }
 

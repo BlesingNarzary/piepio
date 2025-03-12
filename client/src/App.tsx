@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import ProfilePage from "@/pages/profile-page";
+import SettingsPage from "@/pages/settings-page"; // Added import for SettingsPage
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/profile/:id" component={ProfilePage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/settings" component={SettingsPage} /> {/* Added route for SettingsPage */}
       <Route component={NotFound} />
     </Switch>
   );

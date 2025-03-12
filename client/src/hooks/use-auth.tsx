@@ -3,9 +3,10 @@ import {
   useQuery,
   useMutation,
   UseMutationResult,
+  useQueryClient,
 } from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { insertUserSchema, User as SelectUser, InsertUser, PartialUser } from "@shared/schema"; // Assuming PartialUser type exists or create it.
+import { getQueryFn, apiRequest } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
@@ -15,6 +16,7 @@ type AuthContextType = {
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
+  updateUserMutation: UseMutationResult<SelectUser, Error, PartialUser>; // Added updateUserMutation
 };
 
 type LoginData = Pick<InsertUser, "username" | "password">;
@@ -22,6 +24,7 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const queryClient = useQueryClient(); // Get queryClient from hook
   const {
     data: user,
     error,
@@ -81,6 +84,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const updateUserMutation = useMutation({ // Added updateUserMutation
+    mutationFn: async (userData: PartialUser) => {
+      const res = await apiRequest("PUT", "/api/user", userData); // Assuming PUT endpoint for update
+      return await res.json();
+    },
+    onSuccess: (updatedUser: SelectUser) => {
+      queryClient.setQueryData(["/api/user"], updatedUser);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -90,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        updateUserMutation, // Added updateUserMutation to context
       }}
     >
       {children}

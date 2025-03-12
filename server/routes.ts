@@ -99,6 +99,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(posts);
   });
 
+  app.get("/api/users/:userId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const userId = parseInt(req.params.userId);
+    const user = await storage.getUserById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Don't expose password
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  });
+
+  app.get("/api/users/:userId/following", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const userId = parseInt(req.params.userId);
+    const followingId = parseInt(req.params.userId);
+    const isFollowing = await storage.isFollowing(req.user!.id, followingId);
+    res.json(isFollowing);
+  });
+
+  app.put("/api/user/profile", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const { displayName, bio, avatarUrl } = req.body;
+    const updatedUser = await storage.updateUserProfile(
+      req.user!.id,
+      { displayName, bio, avatarUrl }
+    );
+    
+    // Update session
+    req.login(updatedUser, (err) => {
+      if (err) return res.status(500).json({ message: "Failed to update session" });
+      
+      // Don't expose password
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

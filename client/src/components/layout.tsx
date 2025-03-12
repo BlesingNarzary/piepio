@@ -28,6 +28,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <User className="h-5 w-5" />
                   </Link>
                 </Button>
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href="/settings">
+                    {/* Added Settings link */}
+                    <span className="h-5 w-5">Settings</span> {/* Placeholder icon */}
+                  </Link>
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
